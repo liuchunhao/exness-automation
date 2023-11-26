@@ -90,7 +90,7 @@ def firefox():
         driver.switch_to.frame(driver.find_element(By.XPATH , xpath))
         print(f'switch to iframe: {xpath}')
 
-        # Step 3.2: click ERC20 (Ethereum)
+        # Step 3.2: select ERC20 (Ethereum)
         wait = WebDriverWait(driver, 10)
         xpath = '/html/body/div/div/div/div/div/div[2]/div/div/div[2]/div[5]'
         wait.until(EC.element_to_be_clickable((By.XPATH, xpath)))
@@ -108,12 +108,13 @@ def firefox():
         # Step 4.1: choose currency ERC20
         time.sleep(2)
         wait = WebDriverWait(driver, 10)
-        xpath = '//*[@id="edecbfd5-0652-4296-ac1b-7347a66155da"]'
+        xpath = '//*/div[@title="Tether (USDT ERC20)"]'
+        # xpath = '//*/div[@title="Tether (USDT TRC20)"]'
         currency = wait.until(EC.element_to_be_clickable((By.XPATH, xpath)))
-        currency.click()
         print(f'choose currency: {currency.text}')
+        currency.click()
 
-        # Step 4.2: drop down currency list
+        # Step 4.2: drop down currency list ( DO NOT CHANGE TO DIFFERENT CURRENCY !!! )
         '''
         time.sleep(2)
         wait = WebDriverWait(driver, 10)
@@ -125,14 +126,13 @@ def firefox():
         # Step 4.3: choose currency TRC20
         time.sleep(2)
         wait = WebDriverWait(driver, 10)
-        xpath = '//*[@id="d09edeee-bc6e-4b87-bef3-ac62e30d111f"]'
+        xpath = '//*/div[@title="Tether (USDT ERC20)"]'
         currency = wait.until(EC.element_to_be_clickable((By.XPATH, xpath)))
         currency.click()
         print(f'choose currency: {currency.text}')
         '''
 
         # Step 5: input withdrawal address
-        time.sleep(5)
         wait = WebDriverWait(driver, 10)
         erc20_address = '0x3f5CE5FBFe3E9af3971dD833D26bA9b5C936f0bE'
         trc20_address = 'TQjgj6KZ2KZzqQKXeR4qWYcEn5qX7e1n6i'
@@ -142,7 +142,6 @@ def firefox():
         print(f'input withdrawal address: {erc20_address}')
 
         # Step 6: input withdrawal amount
-        time.sleep(5)
         wait = WebDriverWait(driver, 10)
         xpath = '//*[@id="main_amount"]'
         amount = wait.until(EC.element_to_be_clickable((By.XPATH, xpath)))
@@ -155,7 +154,9 @@ def firefox():
         submit = wait.until(EC.element_to_be_clickable((By.XPATH, xpath)))
         submit.click()
         print(f'click submit button')
-
+    except Exception as e:
+        print(e)
+        # send notification to line
     finally:
         time.sleep(60)
         driver.quit()
