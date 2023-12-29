@@ -78,8 +78,8 @@ def firefox():
         withdrawal_link.click()
         print(f'click withdrawal link: {withdrawal_link.text}')
         
-        # Step 3: Choose network ERC20
 
+        # Step 3: Choose Network
         # Step 3.1: switch to iframe
         wait = WebDriverWait(driver, 10)
         xpath = '/html/body/div[1]/div[3]/main/div/div[2]/div/div'
@@ -88,6 +88,7 @@ def firefox():
 
         xpath = f'{xpath}/iframe'
         driver.switch_to.frame(driver.find_element(By.XPATH , xpath))
+        # driver.switch_to.default_content()
         print(f'switch to iframe: {xpath}')
 
         # Step 3.2: select ERC20 (Ethereum)
@@ -105,6 +106,7 @@ def firefox():
         currency.click()
         print(f'drop down currency list')
         
+
         # Step 4.1: choose currency ERC20
         time.sleep(2)
         wait = WebDriverWait(driver, 10)
@@ -114,23 +116,9 @@ def firefox():
         print(f'choose currency: {currency.text}')
         currency.click()
 
-        # Step 4.2: drop down currency list ( DO NOT CHANGE TO DIFFERENT CURRENCY !!! )
-        '''
-        time.sleep(2)
-        wait = WebDriverWait(driver, 10)
-        xpath = '//*[@id="deposit"]'
-        currency = wait.until(EC.element_to_be_clickable((By.XPATH, xpath)))
-        currency.click()
-        print(f'drop down currency list')
 
-        # Step 4.3: choose currency TRC20
-        time.sleep(2)
-        wait = WebDriverWait(driver, 10)
-        xpath = '//*/div[@title="Tether (USDT ERC20)"]'
-        currency = wait.until(EC.element_to_be_clickable((By.XPATH, xpath)))
-        currency.click()
-        print(f'choose currency: {currency.text}')
-        '''
+        # DO NOT CHANGE TO DIFFERENT CURRENCY !!!
+
 
         # Step 5: input withdrawal address
         wait = WebDriverWait(driver, 10)
@@ -141,6 +129,7 @@ def firefox():
         address.send_keys(erc20_address)
         print(f'input withdrawal address: {erc20_address}')
 
+
         # Step 6: input withdrawal amount
         wait = WebDriverWait(driver, 10)
         xpath = '//*[@id="main_amount"]'
@@ -148,15 +137,17 @@ def firefox():
         amount.send_keys('0.0001')
         print(f'input withdrawal amount: 0.0001')
 
+
         # Step 7: click submit
         wait = WebDriverWait(driver, 10)
         xpath = '//*[@id=":rg:"]'
         submit = wait.until(EC.element_to_be_clickable((By.XPATH, xpath)))
         submit.click()
         print(f'click submit button')
+
     except Exception as e:
         print(e)
-        # send notification to line
+        # send notification to LINE
     finally:
         time.sleep(60)
         driver.quit()
