@@ -21,7 +21,7 @@ class MT5TradeServer:
 
     def __init__(self):
         logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
-        self.ws_server = WebSocketServer()
+        self.ws_server = WebSocketServer(port=8765)
         threading.Thread(target=self.ws_server.start).start()
         logging.info(f'WebSocket server started at {self.ws_server.host}:{self.ws_server.port}')
 
@@ -129,8 +129,42 @@ class MT5TradeServer:
         def ping():
             return 'pong', 200
 
-        app.run(port=5000)
 
+        # 簡訊通知
+        @app.route('/sms', methods=['POST'])
+        def sms():
+            '''
+            {
+                timestamp: '2021-09-08 12:34:56'
+                from: '+886958123456',
+                msg: 'hello world'
+            }
+            '''
+            data = ''
+            try: 
+                data = request.get_data(as_text=True) 
+                logging.debug(f'RCV(data): [{data}]')
+
+                json_data = json.loads(data)
+                timestamp = json_data['timestamp']
+                logging.debug(f'timestamp: {timestamp}')
+
+                msg = json.dumps(json_data, indent=4, ensure_ascii=False)
+                self.ws_server.publish(msg)
+                logging.info(f'Published: {msg}')
+                return f'Received the POST request and published it', 200
+            except Exception as e:
+                logging.error(f'error: [{e}], data: [{data}]', exc_info=True)
+                return f'error: {e}', 400
+
+
+        def shutdown_server():
+            func = request.environ.get('werkzeug.server.shutdown')
+            if func is None:
+                raise RuntimeError('Not running with the Werkzeug Server')
+            func()
+
+        app.run(port=5000)
 
 
 

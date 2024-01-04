@@ -8,7 +8,7 @@ from websockets import server
 
 class WebSocketServer:
 
-    def __init__(self, host='localhost', port=8765):
+    def __init__(self, host='0.0.0.0', port=8765):
         logging.basicConfig(level=logging.INFO)
         self.__connected_clients = set()
         self.__queue = queue.Queue()
