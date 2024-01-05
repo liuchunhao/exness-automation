@@ -15,10 +15,9 @@ class WebSocketServer:
         self.host = host
         self.port = port
 
-
     async def __queue_handling(self):
         '''
-            send message to all connected clients when queue is not empty
+        Send message to all connected clients when queue is not empty
         '''
         while True:
             if not self.__queue.empty():
@@ -28,34 +27,32 @@ class WebSocketServer:
                     message = str(message)
 
                 if self.__connected_clients:   
-                    logging.debug(f"sending message ... {message}")
                     # await asyncio.wait([client.send(message) for client in self.__connected_clients]) 
-                    # send message to all connected clients
                     [await client.send(message) for client in self.__connected_clients]
-                    logging.info(f"WebSocket|Sent[{len(self.__connected_clients)}]: {message}")
+                    logging.info(f"SND[{len(self.__connected_clients)}]: {message}")
                 else:
-                    logging.info(f"WebSocket|No client connected")
+                    logging.debug(f"No client connected")
             else:
-                await asyncio.sleep(0.1)   # check queue every 0.1 second 
+                await asyncio.sleep(0.05)   # check queue every 0.1 second if it is empty
         
 
     async def __server_time(self):
         '''
-            send server time to clients every 10 seconds
+        Send server time to clients every 10 seconds
         '''
         while True:
             res = {
-                "eventType": "SERVER_TIME",
-                "eventTime": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                "serverTime": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "event": "heartbeat",
+                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "data": {}
             }
-            self.publish(json.dumps(res, indent=4));
+            self.publish(res);
             await asyncio.sleep(30)
 
 
     async def __client_handling(self, websocket, path):
         '''
-            client connection handling
+        Client connection handling
         '''
         logging.info(f"Client connected from: {websocket.remote_address}")
         client_ip, _ = websocket.remote_address
@@ -65,9 +62,9 @@ class WebSocketServer:
                 logging.info(f"Received message from [{client_ip}]: [{message}]")
                 await websocket.send(f"Hello! I've received your message from [{client_ip}]: [{message}]")
         except Exception as e:
-            logging.error(e)
+            logging.exception(f"Exception from [{client_ip}]: [{e}]")
         finally:
-            logging.info(f"Client disconnected")
+            logging.info(f"Client disconnected from: {websocket.remote_address}")
             self.__connected_clients.remove(websocket)
 
 
@@ -81,9 +78,6 @@ class WebSocketServer:
 
 
     def publish(self, msg):
-        '''
-           add message to queue
-        '''
         self.__queue.put(msg)
 
 
@@ -101,16 +95,30 @@ class WebSocketServer:
                 asyncio.create_task(self.__queue_handling(), name='queue_handling'),
             ]
             done, pending = await asyncio.wait(task_list)
-            logging.info(f"done: {done}")
+            logging.info(f"Tasks done: {done}")
             return done, pending
 
         try:
-            logging.info(f"server is up at ws://{self.host}:{self.port}")
+            logging.info(f"Server is up at ws://{self.host}:{self.port}")
             asyncio.run(tasks())   # run tasks forever
         except KeyboardInterrupt:
-            logging.info(f"server is down at ws://{self.host}:{self.port}")
+            logging.info(f"Server is down at ws://{self.host}:{self.port}")
         except Exception as e:
-            logging.error(e)
+            logging.exception(f"Exception: {e}")
         finally:
             logging.info(f"server is down at ws://{self.host}:{self.port}")
 
+
+if __name__ == '__main__':
+    import time
+    import threading
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s|%(levelname)s|%(message)s')
+
+    ws_server = WebSocketServer(host='0.0.0.0', port=8765)
+    threading.Thread(target=ws_server.start).start()
+    
+    while True:
+        try:
+            time.sleep(1)
+        except KeyboardInterrupt:
+            break

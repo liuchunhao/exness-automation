@@ -3,8 +3,9 @@ import json
 import logging
 
 from flask import Flask, request
+from flask_cors import CORS
 
-from __ws_data_server import WebSocketServer
+from exness.ws_data_server import WebSocketServer
 
 
 class MT5TradeServer:
@@ -20,7 +21,7 @@ class MT5TradeServer:
     '''
 
     def __init__(self):
-        logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
+        logging.basicConfig(level=logging.INFO, format='%(asctime)s|%(levelname)s|%(message)s')
         self.ws_server = WebSocketServer(port=8765)
         threading.Thread(target=self.ws_server.start).start()
         logging.info(f'WebSocket server started at {self.ws_server.host}:{self.ws_server.port}')
@@ -28,6 +29,8 @@ class MT5TradeServer:
 
     def start(self):
         app = Flask(__name__)
+        CORS(app)
+        # app.register_blueprint(hello_controller.bp)
 
         @app.route('/notification/trade', methods=['POST'])
         def on_trade():
