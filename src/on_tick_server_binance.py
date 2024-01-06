@@ -47,8 +47,9 @@ from ws_data_server import WebSocketServer
 
 class BinanceOnTickServer:
 
-    def __init__(self, port=28765) -> None:
-        self.port = port
+    def __init__(self, port) -> None:
+        self.ws_server = WebSocketServer(port=port)
+        threading.Thread(target=self.ws_server.start, daemon=True).start()
 
         def on_message(ws, message):
             msg = json.loads(message)
@@ -69,7 +70,6 @@ class BinanceOnTickServer:
             a_qty = ask[1]
 
             # output = f'on_message: {timestamp};  bid:[px:{b_px} qty:{b_qty}]  ask:[px:{a_px} qty:{a_qty}]'
-
             output = {
                 "event" : "onTick",
                 "from" : "binance",
@@ -93,17 +93,16 @@ class BinanceOnTickServer:
         self.ws = websocket.WebSocketApp(f"wss://fstream.binance.com/stream?streams={symbol}@depth{levels}@{speed}ms",
         # ws = websocket.WebSocketApp(f"wss://fstream.binance.com/stream?streams=btcusdt@depth5",
                                     # on_open=on_open, 
-                                    on_error=on_error, 
-                                    on_close=on_close, 
                                     # on_data=on_data, 
                                     # on_cont_message=on_cont_message, 
                                     # on_cont_error=on_cont_error, 
                                     # on_cont_close=on_cont_close, 
                                     # on_cont_data=on_cont_data,
+                                    on_error=on_error, 
+                                    on_close=on_close, 
                                     on_message=on_message)
 
-        self.ws_server = WebSocketServer(port=self.port)
-        threading.Thread(target=self.ws_server.start).start()
+        logging.info(f'ws: {self.ws}')
 
 
     def start(self):

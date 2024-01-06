@@ -100,7 +100,8 @@ class WebSocketServer:
 
         try:
             logging.info(f"Server is up at ws://{self.host}:{self.port}")
-            asyncio.run(tasks())   # run tasks forever
+            # run tasks forever
+            asyncio.run(tasks())   
         except KeyboardInterrupt:
             logging.info(f"Server is down at ws://{self.host}:{self.port}")
         except Exception as e:

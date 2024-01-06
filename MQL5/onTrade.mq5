@@ -61,12 +61,11 @@ void OnTick()
    if(socket!=INVALID_HANDLE) {
 
        if(SymbolInfoTick(SYMBOL, last_tick)) {
-
-            // Print(last_tick.time,": Bid = ", last_tick.bid, " Ask = ", last_tick.ask," Volume = ", last_tick.volume);
-            
-            // string request = TimeToString(last_tick.time) + ": Bid = " + DoubleToString(last_tick.bid) + " Ask = " + DoubleToString(last_tick.ask) + " Volume = " + IntegerToString(last_tick.volume) + NEW_LINE;
-            
-            string time = TimeToString(last_tick.time);
+            // string time = TimeToString(last_tick.time); 
+            MqlDateTime dt_struct;
+            datetime current_time = TimeCurrent(dt_struct); 
+            string time = StringFormat("%04d-%02d-%02d %02d:%02d:%02d", dt_struct.year, dt_struct.mon, dt_struct.day, dt_struct.hour, dt_struct.min, dt_struct.sec);
+                    
             double bid = last_tick.bid;
             double ask = last_tick.ask;
             ulong volume = last_tick.volume;
@@ -472,5 +471,4 @@ void OnTradeTransaction(const MqlTradeTransaction& trans,
 
 
 //+------------------------------------------------------------------+
-
 

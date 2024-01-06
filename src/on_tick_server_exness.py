@@ -15,7 +15,7 @@ class OnTickPushServer:
         self.ws_server.publish(message)
     
     def start(self):
-        threading.Thread(target=self.ws_server.start).start()
+        threading.Thread(target=self.ws_server.start, daemon=True).start()
 
 
 class Buffer:
