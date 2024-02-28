@@ -3,7 +3,9 @@
 APP_HOME=$(dirname $(readlink -f $0))
 cd $APP_HOME
 
-source ${APP_HOME}/.venv/bin/activate
+# source ${APP_HOME}/.venv/bin/activate
+
+pip3 install -r requirements.txt
 
 python --version
 

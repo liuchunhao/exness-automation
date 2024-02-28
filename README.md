@@ -32,3 +32,17 @@
   > chrome://version/
 
 
+## Start Up
+- copy `MQL5/onTrade.mq5` into `MetaEditor`
+
+- run API server
+  ```bash
+  $ virtualenv .venv
+  $ source .venv/bin/activate
+  # or ( source .venv/Scripts/activate ) on Windows
+
+  $ ./start.sh
+  ```
+- make sure you have API server address whitelisted in the settings of MT5 before you start running MQL
+
+
