@@ -90,6 +90,7 @@ class BinanceOnTickServer:
         symbol = 'btcusdt'
         levels = 5      # 5, 10, 20
         speed = '100'   # 500ms, 250ms, 100ms 
+        self.ws = websockets
         self.ws = websocket.WebSocketApp(f"wss://fstream.binance.com/stream?streams={symbol}@depth{levels}@{speed}ms",
         # ws = websocket.WebSocketApp(f"wss://fstream.binance.com/stream?streams=btcusdt@depth5",
                                     # on_open=on_open, 
