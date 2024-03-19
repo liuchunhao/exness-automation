@@ -31,11 +31,26 @@ def init():
         logging.info(f"initialize() failed: {mt5.last_error()}")
         mt5.shutdown()
         return False
-    logging.info('initialize() success')
-    logging.info(mt5.terminal_info())
-    logging.info(mt5.version())
-    logging.info(mt5.account_info())
+
+    logging.info(f'initialize() success, terminal_info: {mt5.terminal_info()}')
     return True
+
+
+def get_account_info():
+    account_info = mt5.account_info()._asdict()
+    '''
+    AccountInfo(login=41084529, trade_mode=0, leverage=500, limit_orders=1024, margin_so_mode=0, trade_allowed=True, trade_expert=True, margin_mode=2, currency_digits=2, fifo_close=False, balance=99605.16, credit=0.0, profit=-21.36, equity=99583.8, margin=14.75, margin_free=99569.05, margin_level=675144.4067796611, margin_so_call=30.0, margin_so_so=0.0, margin_initial=0.0, margin_maintenance=0.0, assets=0.0, liabilities=0.0, commission_blocked=0.0, name='裸点账户', server='Exness-MT5Trial3', currency='USD', company='Exness Technologies Ltd'), (1, 'Success')
+    '''
+    logging.info(f'account_info: {account_info}, {mt5.last_error()}')
+    logging.info(f'balance: {account_info["balance"]}')
+    logging.info(f'profit: {account_info["profit"]}')
+    logging.info(f'equity: {account_info["equity"]}')
+    logging.info(f'margin: {account_info["margin"]}')
+    logging.info(f'margin_free: {account_info["margin_free"]}')
+    logging.info(f'margin_level: {account_info["margin_level"]}%')
+    logging.info(f'currency: {account_info["currency"]}')
+    logging.info(f'login: {account_info["login"]}')
+    return account_info
 
 
 def limit_order(symbol: str, order_type: str, volume: float, price: float, type_filling=mt5.ORDER_FILLING_RETURN):
@@ -343,20 +358,27 @@ def get_orders(symbol):
 if __name__ == '__main__':
     init()
 
+    # account
+    ## [x] 
+    get_account_info()
+
+
     # order
     ## [x] market_order('BTCUSD', 0.03, 'buy')  
-    ## [x] 
-    limit_order('BTCUSD', 'buy', volume=0.05, price=59000)
+    ## [x] limit_order('BTCUSD', 'buy', volume=0.05, price=59000)
     ## [x] modify_order_by_price(ticket=47106125, price=63000)
     ## [x] delete_order(ticket=47106125)
+
 
     # symbols
     ## [x] get_all_symbols()
     ## [x] get_symbol_info('BTCUSD')
 
+
     # list orders
     ## [x] get_orders('BTCUSD')
     ## [x] get_order_by_ticket(ticket=47106125)
+
 
     # position
     # [x] close_position_by_volume(ticket=47106357, volume=0.01)
