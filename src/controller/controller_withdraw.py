@@ -1,6 +1,6 @@
 from flask import Blueprint, request
 
-from auto_withdraw import withdraw as exness_withdraw
+from service.auto_withdraw import withdraw as exness_withdraw
 
 import logging
 import json

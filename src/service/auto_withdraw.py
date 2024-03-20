@@ -14,12 +14,17 @@ import sys
 import re
 import json
 import logging
+import dotenv
 from datetime import datetime
 
 import requests
 
+logging.basicConfig(level=logging.INFO, format='%(asctime)s|%(levelname)5s|%(message)s')
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+dotenv.load_dotenv()
+LOGIN = os.getenv('LOGIN')
+LOGIN_PASSWORD = os.getenv('LOGIN_PASSWORD')
+
 
 def login_free_using_browser_user_data():
 
@@ -74,9 +79,9 @@ def withdraw(amount, network='TRC20', address='TToVWnYKgdgkrFP8t26qeZKmrp46UZpnH
         # 1. Login
         time.sleep(5)
         logging.info(f'Login')
-        driver.find_element(By.NAME, 'login').send_keys('liu.chun.hao.tw@gmail.com')
+        driver.find_element(By.NAME, 'login').send_keys(LOGIN)
         time.sleep(1)
-        driver.find_element(By.NAME, 'password').send_keys('mtG36Abw#Gsb$cr')
+        driver.find_element(By.NAME, 'password').send_keys(LOGIN_PASSWORD)
         time.sleep(1)
         driver.find_element(By.ID,'mui-3').click()
 
@@ -278,7 +283,7 @@ def withdraw(amount, network='TRC20', address='TToVWnYKgdgkrFP8t26qeZKmrp46UZpnH
             }
         }
     except Exception as e:
-        logging.error(f'Error: {e}', stack_info=True)
+        logging.error(f'Error: {e}')    
         # send notification to LINE
         res = {
             "code": -1,

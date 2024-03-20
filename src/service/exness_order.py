@@ -8,7 +8,7 @@ import MetaTrader5 as mt5
 
 import dotenv
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s|%(levelname)s|%(message)s')
+logging.basicConfig(level=logging.INFO, format='%(asctime)s|%(levelname)7s|%(message)s')
 
 dotenv.load_dotenv()
 
@@ -61,8 +61,6 @@ def limit_order(symbol: str, order_type: str, volume: float, price: float, type_
         'volume': float(volume),
         'type': type_dict[order_type],
         'price': float(price),
-        # 'deviation': 20,                     # Maximum deviation from the requested price
-        # 'magic': 100,                        # EA ID
         'comment': 'limit order',
         'type_time': mt5.ORDER_TIME_GTC,
         'type_filling': type_filling,        # https://www.mql5.com/en/docs/constants/tradingconstants/orderproperties#enum_order_type_filling
@@ -76,7 +74,7 @@ def limit_order(symbol: str, order_type: str, volume: float, price: float, type_
         logging.info(f"limit_order failed, retcode={result.retcode}")
 
     logging.info(f'limit_order sent: {result}, {mt5.last_error()}')
-    return result
+    return result._asdict()
 
 
 def market_order(symbol, volume: float, order_type: str):
@@ -106,7 +104,7 @@ def market_order(symbol, volume: float, order_type: str):
         logging.info(f"market_order failed, retcode={result.retcode}")
 
     logging.info(f'market_order sent: {result}, {mt5.last_error()}')
-    return result
+    return result._asdict()
 
 
 def modify_order_by_price(ticket: int, price: float):
@@ -132,14 +130,14 @@ def modify_order_by_price(ticket: int, price: float):
         logging.info(f"modify_order failed, retcode={result.retcode}")
 
     logging.info(f'modify_order sent: {result}, {mt5.last_error()}')
-    return result
+    return result._asdict()
 
 
 def delete_order(ticket: int):
     request = {
         'action': mt5.TRADE_ACTION_REMOVE,      # Remove previously placed pending order
         'order': ticket,
-        'comment': 'delete order',
+        'comment': 'delete_order',
     }
     result = mt5.order_send(request)
     if result is None:
@@ -149,7 +147,7 @@ def delete_order(ticket: int):
         logging.info(f"delete_order (ticket={ticket}) failed, retcode={result.retcode}")
 
     logging.info(f'delete_order (ticket={ticket}) sent: {result}, {mt5.last_error()}')
-    return result
+    return result._asdict()
 
 
 def get_position(ticket):
@@ -180,7 +178,7 @@ def get_position(ticket):
     logging.info(f'time_update_msc={time_update_msc}')  
     logging.info(f'time_msc={time_msc}')
     logging.info(f'position_dict: {position_dict}')
-    return position
+    return position_dict
 
 
 def get_all_positions(symbol='BTCUSD'):
@@ -303,15 +301,24 @@ def get_all_symbols():
 def get_order_by_ticket(ticket: int):
     order = mt5.orders_get(ticket=ticket)
     if order is None:
-        logging.warning(f"get_order_by_ticket: No orders on {ticket}, error code={mt5.last_error()}") 
+        logging.warning(f"get_order_by_ticket: No orders on {ticket}, error code={mt5.last_error()}")
         return None
 
     if len(order) == 0:
         logging.warning(f"get_order_by_ticket: No orders on {ticket}, error code={mt5.last_error()}") 
         return None
 
+    '''
+    TradeOrder(ticket=47247319, time_setup=1710822767, time_setup_msc=1710822767092, time_done=0, time_done_msc=0, time_expiration=0, type=2, type_time=0, type_filling=2, state=1, magic=100, position_id=0, position_by_id=0, reason=3, volume_initial=0.03, volume_current=0.03, price_open=59000.0, sl=0.0, tp=0.0, price_current=62988.01, price_stoplimit=0.0, symbol='BTCUSD', comment='limit order', external_id='')
+    '''
     logging.info(f'get_order_by_ticket: ticket={ticket}\n\r{order}, {mt5.last_error()}')
-    return order
+
+    order_dict = order[0]._asdict()
+    order_dict['time_setup'] = utc_from_timestamp(order[0].time_setup)
+    order_dict['time_setup_msc'] = utc_from_timestamp(order[0].time_setup_msc)
+    logging.info(f'get_order_by_ticket: ticket={ticket}\n\r{order_dict}, {mt5.last_error()}')
+    
+    return order_dict
 
 
 def get_orders(symbol):
@@ -319,48 +326,32 @@ def get_orders(symbol):
     if orders is None:
         logging.warning(f"get_orders: No orders on {symbol}, error code={mt5.last_error()}") 
         return None
-    count = len(orders)
+
     n = 0
-    for order in orders:
+    count = len(orders)
+
+    orders_dict = {}
+    orders_dict['count'] = count
+    orders_dict['orders'] = [order._asdict() for order in orders]
+
+    for order in orders_dict['orders']:
+        order['time_setup']= utc_from_timestamp(order['time_setup'])
+        order['time_setup_msc']= utc_from_timestamp(order['time_setup_msc'])
         '''
         OrderSendResult(retcode=10009, deal=0, order=47247595, volume=0.05, price=0.0, bid=65348.46, ask=65380.340000000004, comment='limit order', request_id=3922353979, retcode_external=0, request=TradeRequest(action=5, magic=0, order=0, symbol='BTCUSD', volume=0.05, price=59000.0, stoplimit=0.0, sl=0.0, tp=0.0, deviation=0, type=2, type_filling=2, type_time=0, expiration=0, comment='limit order', position=0, position_by=0))
         '''
         n += 1
         logging.info(f'get_orders[{n}/{count}]: {order}')
-        order.ticket   # 400019367
-        order.time_setup        # 1710626732
-        order.time_setup_msc    # 1710626732279
-        order.time_done         # 0
-        order.time_done_msc     # 0
-        order.time_expiration   # 0
-        order.type              # 2 
-        order.type_time         # 0 
-        order.type_filling      # 2 
-        order.state             # 1 
-        order.magic             # 100 
-        order.position_id       # 0
-        order.position_by_id    # 0
-        order.reason            # 3
-        order.volume_initial    # 0.01
-        order.volume_current    # 0.01
-        order.price_open        # 1.05
-        order.sl                # 0.0
-        order.tp                # 0.0
-        order.price_current     # 65604.92
-        order.price_stoplimit   # 0.0
-        order.symbol            # 'BTCUSDm'
-        order.comment           # 'python limit ord'
-        order.external_id       # ''
     logging.info(f'get_orders: {orders}, {mt5.last_error()}')
-    return orders
+    logging.info(f'get_orders: {orders_dict}, {mt5.last_error()}')
+    return orders_dict
 
 
 if __name__ == '__main__':
     init()
 
     # account
-    ## [x] 
-    get_account_info()
+    ## [x] get_account_info()
 
 
     # order
@@ -376,8 +367,9 @@ if __name__ == '__main__':
 
 
     # list orders
-    ## [x] get_orders('BTCUSD')
-    ## [x] get_order_by_ticket(ticket=47106125)
+    ## [x] 
+    get_orders('BTCUSD')
+    ## [x] get_order_by_ticket(ticket=47247319)
 
 
     # position

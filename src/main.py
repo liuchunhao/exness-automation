@@ -3,6 +3,8 @@ from flask import Flask, request, abort, g
 from flask_cors import CORS
 
 from controller import controller_withdraw
+from controller import controller_order
+from controller import controller_heartbeat
 
 app = Flask(__name__)
 CORS(app)
@@ -10,6 +12,9 @@ CORS(app)
 
 # registered controllers
 app.register_blueprint(controller_withdraw.bp)
+app.register_blueprint(controller_order.bp)
+app.register_blueprint(controller_heartbeat.bp)
+
 
 @app.errorhandler(Exception)
 def server_error(err):
@@ -22,4 +27,7 @@ def server_error(err):
 
 
 if __name__ == '__main__':
+    from service.exness_order import init
+    init()
+
     app.run(port=5100, debug=True)

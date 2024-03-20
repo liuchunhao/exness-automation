@@ -50,6 +50,9 @@
 
 ## .env
 ```
+LOGIN=blah.blah@gmail.com
+LOGIN_PASSWORD=xyz
+
 ACCOUNT=41084529
 PASSWORD=Aa@124786017
 SERVER=Exness-MT5Trial3

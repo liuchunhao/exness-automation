@@ -1,0 +1,49 @@
+### ping
+GET http://localhost:5100/ping
+
+### oder list
+GET http://localhost:5100/api/v1/exness/order?ticket=47247319
+
+### oder list
+GET http://localhost:5100/api/v1/exness/order/list?symbol=BTCUSD
+
+### limit order
+POST http://localhost:5100/api/v1/exness/order/limit
+Content-Type: application/json
+
+{
+    "symbol": "BTCUSD",
+    "order_type": "buy",
+    "volume": 0.03,
+    "price": 60000
+}
+
+### market order
+POST http://localhost:5100/api/v1/exness/order/market
+Content-Type: application/json
+
+{
+    "symbol": "BTCUSD",
+    "order_type": "buy",
+    "volume": 0.03
+}
+
+### modify order price
+PUT http://localhost:5100/api/v1/exness/order
+Content-Type: application/json
+
+{
+    "ticket": 47449362,
+    "price": 59999
+}
+
+### cancel order
+DELETE http://localhost:5100/api/v1/exness/order
+Content-Type: application/json
+
+{
+    "ticket": 47449362
+}
+
+
+

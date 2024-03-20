@@ -1,6 +1,7 @@
 from flask import Blueprint, request
 
-bp = Blueprint('account', __name__, url_prefix='/account')
+URL_PREFIX = '/api/v1/exness'
+bp = Blueprint('account', __name__, url_prefix=URL_PREFIX)
 
 
 @bp.route('/positions', methods=['GET'])
