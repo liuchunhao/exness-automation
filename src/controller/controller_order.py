@@ -9,7 +9,7 @@ from service.exness_order import get_orders
 from service.exness_order import delete_order
 
 URL_PREFIX = '/api/v1/exness'
-bp = Blueprint('order_controller', __name__, url_prefix=URL_PREFIX)
+bp = Blueprint('order', __name__, url_prefix=URL_PREFIX)
 
 
 @bp.route('/order', methods=['GET']) 

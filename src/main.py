@@ -2,18 +2,23 @@
 from flask import Flask, request, abort, g
 from flask_cors import CORS
 
+from controller import controller_heartbeat
 from controller import controller_withdraw
 from controller import controller_order
-from controller import controller_heartbeat
+from controller import controller_account
+from controller import controller_position
+
 
 app = Flask(__name__)
 CORS(app)
 
 
 # registered controllers
+app.register_blueprint(controller_heartbeat.bp)
 app.register_blueprint(controller_withdraw.bp)
 app.register_blueprint(controller_order.bp)
-app.register_blueprint(controller_heartbeat.bp)
+app.register_blueprint(controller_account.bp)
+app.register_blueprint(controller_position.bp)
 
 
 @app.errorhandler(Exception)

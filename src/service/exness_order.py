@@ -37,10 +37,13 @@ def init():
 
 
 def get_account_info():
-    account_info = mt5.account_info()._asdict()
     '''
     AccountInfo(login=41084529, trade_mode=0, leverage=500, limit_orders=1024, margin_so_mode=0, trade_allowed=True, trade_expert=True, margin_mode=2, currency_digits=2, fifo_close=False, balance=99605.16, credit=0.0, profit=-21.36, equity=99583.8, margin=14.75, margin_free=99569.05, margin_level=675144.4067796611, margin_so_call=30.0, margin_so_so=0.0, margin_initial=0.0, margin_maintenance=0.0, assets=0.0, liabilities=0.0, commission_blocked=0.0, name='裸点账户', server='Exness-MT5Trial3', currency='USD', company='Exness Technologies Ltd'), (1, 'Success')
     '''
+    account_info = mt5.account_info()
+    logging.info(f'account_info: {account_info}, {mt5.last_error()}')
+
+    account_info = account_info._asdict()
     logging.info(f'account_info: {account_info}, {mt5.last_error()}')
     logging.info(f'balance: {account_info["balance"]}')
     logging.info(f'profit: {account_info["profit"]}')
@@ -151,33 +154,22 @@ def delete_order(ticket: int):
 
 
 def get_position(ticket):
-    # get position on ticket
+    '''
+        get position on ticket
+        ticket=47106357, time=1710736375, time_msc=1710736375360, time_update=1710736375, time_update_msc=1710736375360, type=0, magic=100, identifier=47106357, reason=3, volume=0.02, price_open=68037.02, sl=0.0, tp=0.0, price_current=66892.11, swap=0.0, profit=-22.9, symbol='BTCUSD', comment='market order', external_id=''
+    '''
     position = mt5.positions_get(ticket=ticket)[0]
     if position is None:
         logging.warning(f"get_position: No position on ticket = {ticket}, error code={mt5.last_error()}") 
         return None
-    '''
-    ticket=47106357, time=1710736375, time_msc=1710736375360, time_update=1710736375, time_update_msc=1710736375360, type=0, magic=100, identifier=47106357, reason=3, volume=0.02, price_open=68037.02, sl=0.0, tp=0.0, price_current=66892.11, swap=0.0, profit=-22.9, symbol='BTCUSD', comment='market order', external_id=''
-    '''
-    logging.info(f'get_position on ticket = {ticket}: {position}')
+    logging.info(f'get_position on ticket = {ticket}: {position}, {mt5.last_error()}')
+    position_dict = position._asdict()
     time_update_msc = utc_from_timestamp(position.time_update_msc)
     time_msc = utc_from_timestamp(position.time_msc)
-    position_dict = {
-        'time_update_msc' : time_update_msc,
-        'time_msc' : time_msc,
-        'ticket' : position.ticket,
-        'symbol' : position.symbol,
-        'volume' : position.volume,
-        'type' : 'buy' if position.type == mt5.ORDER_TYPE_BUY else 'sell',
-        'price_open' : position.price_open,
-        'price_current' : position.price_current,
-        'profit' : position.profit,
-        'comment' : position.comment,
-    }
-    logging.info(f'ticket={position.ticket}')
-    logging.info(f'time_update_msc={time_update_msc}')  
-    logging.info(f'time_msc={time_msc}')
-    logging.info(f'position_dict: {position_dict}')
+    position_dict['time_update_msc'] = time_update_msc
+    position_dict['time_msc'] = time_msc
+    position_dict['type'] = 'buy' if position_dict['type'] == mt5.ORDER_TYPE_BUY else 'sell'
+    logging.info(f'get_position on ticket = {ticket}: {position_dict}, {mt5.last_error()}')
     return position_dict
 
 
@@ -187,36 +179,28 @@ def get_all_positions(symbol='BTCUSD'):
     if positions is None:
         logging.warning(f"get_all_positions: No positions on {symbol}, error code={mt5.last_error()}") 
         return None
-    count = len(positions)
+    logging.info(f'get_all_positions: {positions}, {mt5.last_error()}')
     n = 0
-    for position in positions:
-        n += 1
-        logging.info(f'get_all_positions[{n}/{count}]: {position}')
+    count = len(positions)
+    position_dict = {}
+    position_dict['count'] = count
+    position_dict['symbol'] = symbol
+    position_dict['positions'] = [position._asdict() for position in positions]
+
+    for position in position_dict['positions']:
         '''
         ticket=47106357, time=1710736375, time_msc=1710736375360, time_update=1710736375, time_update_msc=1710736375360, type=0, magic=100, identifier=47106357, reason=3, volume=0.02, price_open=68037.02, sl=0.0, tp=0.0, price_current=66892.11, swap=0.0, profit=-22.9, symbol='BTCUSD', comment='market order', external_id=''
         '''
-        logging.info(f'ticket={position.ticket}')
-        time_update_msc = utc_from_timestamp(position.time_update_msc)
-        logging.info(f'time_update_msc={time_update_msc}')  
-        time_msc = utc_from_timestamp(position.time_msc)
-        logging.info(f'time_msc={time_msc}')
 
-        position_dict = {
-            'time_update_msc' : time_update_msc,
-            'time_msc' : time_msc,
-            'ticket' : position.ticket,
-            'symbol' : position.symbol,
-            'volume' : position.volume,
-            'type' : 'buy' if position.type == mt5.ORDER_TYPE_BUY else 'sell',
-            'price_open' : position.price_open,
-            'price_current' : position.price_current,
-            'profit' : position.profit,
-            'comment' : position.comment,
-        }
+        n += 1
+        time_update_msc = utc_from_timestamp(position['time_update_msc'])
+        time_msc = utc_from_timestamp(position['time_msc'])
+        position['time_update_msc'] = time_update_msc
+        position['time_msc'] = time_msc
+        position['type'] = 'buy' if position['type'] == mt5.ORDER_TYPE_BUY else 'sell'
+        logging.info(f'get_all_positions[{n}/{count}]: {position}')
 
-        logging.info(f'position_dict: {position_dict}')
-    logging.info(f'get_all_positions: {positions}, {mt5.last_error()}')
-    return positions
+    return position_dict
 
 
 
@@ -226,7 +210,6 @@ def close_position(ticket: int):
     if position is None:
         logging.warning(f"close_position: No position on {ticket}, error code={mt5.last_error()}") 
         return None
-
     tick = mt5.symbol_info_tick(position.symbol)
     request = {
         'action': mt5.TRADE_ACTION_DEAL,        # Place an order for an instant deal with the specified parameters (set a market order)
@@ -235,21 +218,24 @@ def close_position(ticket: int):
         'volume': position.volume,
         'type': mt5.ORDER_TYPE_SELL if position.type == mt5.ORDER_TYPE_BUY else mt5.BOOK_TYPE_BUY,
         'price': tick.bid if position.type == mt5.ORDER_TYPE_BUY else tick.ask,
-        'comment': 'close position',
+        'comment': 'close_position',           # less than 14 characters
     }
     result = mt5.order_send(request)
     if result is None:
         logging.warning(f'close_position failed on ticket = {ticket} : {mt5.last_error()}')
         return None
-    
     if result.retcode != mt5.TRADE_RETCODE_DONE:
         logging.info(f"close_position failed on ticket = {ticket} , retcode={result.retcode}")
 
     logging.info(f'close_position on ticket = {ticket} sent: {result}, {mt5.last_error()}')
-    return result
+    res = result._asdict()
+    return res
 
 
 def close_position_by_volume(ticket: int, volume: float):
+    '''
+        OrderSendResult(retcode=10009, deal=34621560, order=47680492, volume=0.01, price=67889.22, bid=67889.22, ask=67913.54000000001, comment='close position', request_id=3922353990, retcode_external=0, request=TradeRequest(action=1, magic=0, order=0, symbol='BTCUSD', volume=0.01, price=67889.22, stoplimit=0.0, sl=0.0, tp=0.0, deviation=0, type=1, type_filling=0, type_time=0, expiration=0, comment='close position', position=47247020, position_by=0))
+    '''
     positions= mt5.positions_get(ticket=ticket)
     position = positions[0] if len(positions) > 0 else None
     if position is None:
@@ -264,18 +250,17 @@ def close_position_by_volume(ticket: int, volume: float):
         'volume': volume,
         'type': mt5.ORDER_TYPE_SELL if position.type == mt5.ORDER_TYPE_BUY else mt5.BOOK_TYPE_BUY,
         'price': tick.bid if position.type == mt5.ORDER_TYPE_BUY else tick.ask,
-        'comment': 'close position',
+        'comment': "close_position_by_volume",
     }
     result = mt5.order_send(request)
     if result is None:
         logging.warning(f'close_position failed on ticket = {ticket} by volume = {volume}: {mt5.last_error()}')
         return None
-    
     if result.retcode != mt5.TRADE_RETCODE_DONE:
         logging.info(f"close_position failed on ticket = {ticket} by volume = {volume}, retcode={result.retcode}")
-
     logging.info(f'close_position on ticket = {ticket} by volume = {volume} sent: {result}, {mt5.last_error()}')
-    return result
+    res = result._asdict()
+    return res
 
 
 def get_symbol_info(symbol='BTCUSD'):

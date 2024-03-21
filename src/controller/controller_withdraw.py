@@ -9,7 +9,7 @@ from datetime import datetime
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s|%(name)s|%(levelname)s|%(message)s')
 
 URL_PREFIX = '/api/v1/exness'
-bp = Blueprint('exness', __name__, url_prefix=URL_PREFIX)
+bp = Blueprint('withdraw', __name__, url_prefix=URL_PREFIX)
 
 @bp.route('/withdraw', methods=['POST'])
 def withdraw():
