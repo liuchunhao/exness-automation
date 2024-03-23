@@ -42,3 +42,7 @@ error_mapping = {
     10045: "Position closing is allowed only by FIFO rule",
     10046: "Opposite positions on a single symbol are disabled",
 }
+
+
+def get_error_message(error_code: int) -> str:
+    return error_mapping.get(error_code, "Unknown error")

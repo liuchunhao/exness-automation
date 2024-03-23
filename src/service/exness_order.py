@@ -3,10 +3,11 @@
 import os
 import logging
 import datetime
+import dotenv
 
 import MetaTrader5 as mt5
 
-import dotenv
+from service.exness_error import get_error_message
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s|%(levelname)7s|%(message)s')
 
@@ -74,7 +75,8 @@ def limit_order(symbol: str, order_type: str, volume: float, price: float, type_
         return None 
 
     if result.retcode != mt5.TRADE_RETCODE_DONE:
-        logging.info(f"limit_order failed, retcode={result.retcode}")
+        err_msg = get_error_message(result.retcode)
+        logging.info(f"limit_order failed, retcode={result.retcode}, {err_msg}")
 
     logging.info(f'limit_order sent: {result}, {mt5.last_error()}')
     return result._asdict()

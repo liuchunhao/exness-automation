@@ -1,16 +1,31 @@
-
+#!/bin/sh
 
 APP_HOME=$(dirname $(readlink -f $0))
 cd $APP_HOME
 
-# source ${APP_HOME}/.venv/bin/activate
+python --version
 
-pip3 install -r requirements.txt
+# virtualenv .venv
+
+[ -e ${APP_HOME}/.venv/bin/activate ]     && source .venv/bin/activate 
+[ -e ${APP_HOME}/.venv/Scripts/activate ] && source .venv/Scripts/activate 
 
 python --version
 
+echo $?
+
+pip3 install -r requirements.txt
+
 sleep 1
-python src/on_tick_server_binance.py &
-python src/on_tick_server_exness.py &
-python src/on_trade_server_exness.py &
+
+# python src/on_tick_server_binance.py &
+nohup python src/on_tick_server_exness.py &
+nohup python src/on_trade_server_exness.py &
+nohup python src/main.py &
+
+
+ps -ef | grep python | grep -v grep | grep on_tick_server_binance | awk '{print $2}'
+ps -ef | grep python | grep -v grep | grep on_tick_server_exness  | awk '{print $2}'
+ps -ef | grep python | grep -v grep | grep on_trade_server_exness | awk '{print $2}'
+ps -ef | grep python | grep -v grep | grep main | awk '{print $2}'
 

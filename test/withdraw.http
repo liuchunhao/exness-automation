@@ -1,0 +1,8 @@
+
+###
+POST http://localhost:5100/api/v1/exness/withdraw
+Content-Type: application/json
+
+{
+    "amount": 100
+}

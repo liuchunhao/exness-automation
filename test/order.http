@@ -15,7 +15,7 @@ Content-Type: application/json
     "symbol": "BTCUSD",
     "order_type": "buy",
     "volume": 0.03,
-    "price": 60000
+    "price": 63500
 }
 
 ### market order

@@ -37,7 +37,7 @@ class OnTickSocketServer:
         self.s = socket()
         self.s.bind(('', socket_port))
         self.s.listen()
-        logging.info(f'OnTickSocketServer|Running: (press Ctrl+C to exit) 0.0.0.0:{socket_port}')
+        logging.info(f'OnTickSocketServer {__class__}|Running: (press Ctrl+C to exit) 0.0.0.0:{socket_port}')
         self.ws = OnTickPushServer(port=ws_port)
         self.ws.start()
 
@@ -92,5 +92,5 @@ class OnTickSocketServer:
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, format='%(asctime)s|%(levelname)s|%(message)s')
-    OnTickSocketServer(socket_port=19999, ws_port=18765).start()
+    OnTickSocketServer(socket_port=29999, ws_port=18765).start()
 

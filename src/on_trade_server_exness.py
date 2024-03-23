@@ -23,7 +23,7 @@ class MT5TradeServer:
         self.api_port = api_port
         self.ws_server = WebSocketServer(port=ws_port)
         threading.Thread(target=self.ws_server.start, daemon=True).start()
-        logging.info(f'WebSocket server started at {self.ws_server.host}:{self.ws_server.port}')
+        logging.info(f'WebSocket server {__name__} started at {self.ws_server.host}:{self.ws_server.port}')
 
 
     def start(self):
