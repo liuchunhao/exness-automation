@@ -42,10 +42,18 @@ def get_account_info():
     AccountInfo(login=41084529, trade_mode=0, leverage=500, limit_orders=1024, margin_so_mode=0, trade_allowed=True, trade_expert=True, margin_mode=2, currency_digits=2, fifo_close=False, balance=99605.16, credit=0.0, profit=-21.36, equity=99583.8, margin=14.75, margin_free=99569.05, margin_level=675144.4067796611, margin_so_call=30.0, margin_so_so=0.0, margin_initial=0.0, margin_maintenance=0.0, assets=0.0, liabilities=0.0, commission_blocked=0.0, name='裸点账户', server='Exness-MT5Trial3', currency='USD', company='Exness Technologies Ltd'), (1, 'Success')
     '''
     account_info = mt5.account_info()
+    last_error = mt5.last_error()
+    error_code = last_error[0]
+    error_message = last_error[1]
+    if account_info is None:
+        logging.warning(f'account_info failed: {mt5.last_error()}')
+        return None, error_code, error_message
+    else:
+        error_code = 0
+
     logging.info(f'account_info: {account_info}, {mt5.last_error()}')
 
     account_info = account_info._asdict()
-    logging.info(f'account_info: {account_info}, {mt5.last_error()}')
     logging.info(f'balance: {account_info["balance"]}')
     logging.info(f'profit: {account_info["profit"]}')
     logging.info(f'equity: {account_info["equity"]}')
@@ -54,7 +62,7 @@ def get_account_info():
     logging.info(f'margin_level: {account_info["margin_level"]}%')
     logging.info(f'currency: {account_info["currency"]}')
     logging.info(f'login: {account_info["login"]}')
-    return account_info
+    return account_info, error_code, error_message
 
 
 def limit_order(symbol: str, order_type: str, volume: float, price: float, type_filling=mt5.ORDER_FILLING_RETURN):
@@ -70,16 +78,22 @@ def limit_order(symbol: str, order_type: str, volume: float, price: float, type_
         'type_filling': type_filling,        # https://www.mql5.com/en/docs/constants/tradingconstants/orderproperties#enum_order_type_filling
     }
     result = mt5.order_send(request)
+    last_error = mt5.last_error()
+    error_code = last_error[0]
+    error_message = last_error[1]
     if result is None:
         logging.warning(f'limit_order failed: {mt5.last_error()}')
-        return None 
+        return None, error_code, error_message 
 
+    code = result.retcode
+    msg = get_error_message(code)
     if result.retcode != mt5.TRADE_RETCODE_DONE:
-        err_msg = get_error_message(result.retcode)
-        logging.info(f"limit_order failed, retcode={result.retcode}, {err_msg}")
+        logging.info(f"limit_order failed, retcode={result.retcode}, {msg}")
+    else:
+        code = 0  # 10009 -> 0
 
     logging.info(f'limit_order sent: {result}, {mt5.last_error()}')
-    return result._asdict()
+    return result._asdict(), code, msg
 
 
 def market_order(symbol, volume: float, order_type: str):
@@ -101,15 +115,22 @@ def market_order(symbol, volume: float, order_type: str):
     }
 
     result = mt5.order_send(request)
+    last_error = mt5.last_error()
+    error_code = last_error[0]
+    error_message = last_error[1]
     if result is None:
         logging.warning(f'market_order failed: {mt5.last_error()}')
-        return None
+        return None, error_code, error_message
 
+    code = result.retcode
+    msg = get_error_message(code)
     if result.retcode != mt5.TRADE_RETCODE_DONE:
         logging.info(f"market_order failed, retcode={result.retcode}")
+    else:
+        code = 0
 
     logging.info(f'market_order sent: {result}, {mt5.last_error()}')
-    return result._asdict()
+    return result._asdict(), code, msg
 
 
 def modify_order_by_price(ticket: int, price: float):
@@ -127,15 +148,22 @@ def modify_order_by_price(ticket: int, price: float):
     }
 
     result = mt5.order_send(request)
+    last_error = mt5.last_error()
+    error_code = last_error[0]
+    error_message = last_error[1]
     if result is None:
         logging.warning(f'modify_order failed: {mt5.last_error()}')
-        return None
+        return None, error_code, error_message
 
+    code = result.retcode
+    msg = get_error_message(code)
     if result.retcode != mt5.TRADE_RETCODE_DONE:
         logging.info(f"modify_order failed, retcode={result.retcode}")
+    else:
+        code = 0
 
     logging.info(f'modify_order sent: {result}, {mt5.last_error()}')
-    return result._asdict()
+    return result._asdict(), code, msg
 
 
 def delete_order(ticket: int):
@@ -145,14 +173,22 @@ def delete_order(ticket: int):
         'comment': 'delete_order',
     }
     result = mt5.order_send(request)
+    last_error = mt5.last_error()
+    error_code = last_error[0]
+    error_message = last_error[1]
     if result is None:
         logging.warning(f'delete_order (ticket={ticket}) failed: {mt5.last_error()}')
-        return None
+        return None, error_code, error_message
+
+    code = result.retcode
+    msg = get_error_message(code)
     if result.retcode != mt5.TRADE_RETCODE_DONE:
         logging.info(f"delete_order (ticket={ticket}) failed, retcode={result.retcode}")
+    else:
+        code = 0
 
     logging.info(f'delete_order (ticket={ticket}) sent: {result}, {mt5.last_error()}')
-    return result._asdict()
+    return result._asdict(), code, msg
 
 
 def get_position(ticket):
@@ -161,9 +197,15 @@ def get_position(ticket):
         ticket=47106357, time=1710736375, time_msc=1710736375360, time_update=1710736375, time_update_msc=1710736375360, type=0, magic=100, identifier=47106357, reason=3, volume=0.02, price_open=68037.02, sl=0.0, tp=0.0, price_current=66892.11, swap=0.0, profit=-22.9, symbol='BTCUSD', comment='market order', external_id=''
     '''
     position = mt5.positions_get(ticket=ticket)[0]
+    last_error = mt5.last_error()
+    error_code = last_error[0]
+    error_message = last_error[1]
     if position is None:
         logging.warning(f"get_position: No position on ticket = {ticket}, error code={mt5.last_error()}") 
-        return None
+        return None, error_code, error_message
+    else:
+        error_code = 0
+    # No retcode in position request
     logging.info(f'get_position on ticket = {ticket}: {position}, {mt5.last_error()}')
     position_dict = position._asdict()
     time_update_msc = utc_from_timestamp(position.time_update_msc)
@@ -172,15 +214,21 @@ def get_position(ticket):
     position_dict['time_msc'] = time_msc
     position_dict['type'] = 'buy' if position_dict['type'] == mt5.ORDER_TYPE_BUY else 'sell'
     logging.info(f'get_position on ticket = {ticket}: {position_dict}, {mt5.last_error()}')
-    return position_dict
+    return position_dict, error_code, error_message
 
 
 def get_all_positions(symbol='BTCUSD'):
     # get all positions on BTCUSD
     positions = mt5.positions_get(symbol='BTCUSD')
+    last_error = mt5.last_error()
+    error_code = last_error[0]
+    error_message = last_error[1]
     if positions is None:
         logging.warning(f"get_all_positions: No positions on {symbol}, error code={mt5.last_error()}") 
-        return None
+        return None, error_code, error_message
+    else:
+        error_code = 0
+
     logging.info(f'get_all_positions: {positions}, {mt5.last_error()}')
     n = 0
     count = len(positions)
@@ -193,7 +241,6 @@ def get_all_positions(symbol='BTCUSD'):
         '''
         ticket=47106357, time=1710736375, time_msc=1710736375360, time_update=1710736375, time_update_msc=1710736375360, type=0, magic=100, identifier=47106357, reason=3, volume=0.02, price_open=68037.02, sl=0.0, tp=0.0, price_current=66892.11, swap=0.0, profit=-22.9, symbol='BTCUSD', comment='market order', external_id=''
         '''
-
         n += 1
         time_update_msc = utc_from_timestamp(position['time_update_msc'])
         time_msc = utc_from_timestamp(position['time_msc'])
@@ -202,8 +249,7 @@ def get_all_positions(symbol='BTCUSD'):
         position['type'] = 'buy' if position['type'] == mt5.ORDER_TYPE_BUY else 'sell'
         logging.info(f'get_all_positions[{n}/{count}]: {position}')
 
-    return position_dict
-
+    return position_dict, error_code, error_message
 
 
 def close_position(ticket: int):
@@ -223,15 +269,23 @@ def close_position(ticket: int):
         'comment': 'close_position',           # less than 14 characters
     }
     result = mt5.order_send(request)
+    last_error = mt5.last_error()
+    error_code = last_error[0]
+    error_message = last_error[1]
     if result is None:
         logging.warning(f'close_position failed on ticket = {ticket} : {mt5.last_error()}')
-        return None
+        return None, error_code, error_message
+
+    code = result.retcode
+    msg = get_error_message(code)
     if result.retcode != mt5.TRADE_RETCODE_DONE:
         logging.info(f"close_position failed on ticket = {ticket} , retcode={result.retcode}")
+    else:
+        code = 0
 
     logging.info(f'close_position on ticket = {ticket} sent: {result}, {mt5.last_error()}')
     res = result._asdict()
-    return res
+    return res, code, msg
 
 
 def close_position_by_volume(ticket: int, volume: float):
@@ -255,14 +309,24 @@ def close_position_by_volume(ticket: int, volume: float):
         'comment': "close_position_by_volume",
     }
     result = mt5.order_send(request)
+
+    last_error = mt5.last_error()
+    error_code = last_error[0]
+    error_message = last_error[1]
     if result is None:
         logging.warning(f'close_position failed on ticket = {ticket} by volume = {volume}: {mt5.last_error()}')
-        return None
+        return None, error_code, error_message
+
+    code = result.retcode
+    msg = get_error_message(code)
     if result.retcode != mt5.TRADE_RETCODE_DONE:
         logging.info(f"close_position failed on ticket = {ticket} by volume = {volume}, retcode={result.retcode}")
+    else:
+        code = 0
+
     logging.info(f'close_position on ticket = {ticket} by volume = {volume} sent: {result}, {mt5.last_error()}')
     res = result._asdict()
-    return res
+    return res, code, msg
 
 
 def get_symbol_info(symbol='BTCUSD'):
@@ -286,33 +350,37 @@ def get_all_symbols():
 
 
 def get_order_by_ticket(ticket: int):
-    order = mt5.orders_get(ticket=ticket)
-    if order is None:
-        logging.warning(f"get_order_by_ticket: No orders on {ticket}, error code={mt5.last_error()}")
-        return None
-
-    if len(order) == 0:
-        logging.warning(f"get_order_by_ticket: No orders on {ticket}, error code={mt5.last_error()}") 
-        return None
-
     '''
     TradeOrder(ticket=47247319, time_setup=1710822767, time_setup_msc=1710822767092, time_done=0, time_done_msc=0, time_expiration=0, type=2, type_time=0, type_filling=2, state=1, magic=100, position_id=0, position_by_id=0, reason=3, volume_initial=0.03, volume_current=0.03, price_open=59000.0, sl=0.0, tp=0.0, price_current=62988.01, price_stoplimit=0.0, symbol='BTCUSD', comment='limit order', external_id='')
     '''
-    logging.info(f'get_order_by_ticket: ticket={ticket}\n\r{order}, {mt5.last_error()}')
+    order = mt5.orders_get(ticket=ticket)
+    last_error = mt5.last_error()
+    error_code = last_error[0]
+    error_message = last_error[1]
+    if order is None:
+        logging.warning(f"get_order_by_ticket: No orders on {ticket}, error code={mt5.last_error()}")
+        return None, error_code, error_message
 
+    if len(order) == 0:
+        logging.warning(f"get_order_by_ticket: No orders on {ticket}, error code={mt5.last_error()}") 
+        return None, error_code, error_message
+
+    logging.info(f'get_order_by_ticket: ticket={ticket}\n\r{order}, {mt5.last_error()}')
     order_dict = order[0]._asdict()
     order_dict['time_setup'] = utc_from_timestamp(order[0].time_setup)
     order_dict['time_setup_msc'] = utc_from_timestamp(order[0].time_setup_msc)
     logging.info(f'get_order_by_ticket: ticket={ticket}\n\r{order_dict}, {mt5.last_error()}')
-    
     return order_dict
 
 
 def get_orders(symbol):
     orders = mt5.orders_get(symbol=symbol)
+    last_error = mt5.last_error()
+    error_code = last_error[0]
+    error_message = last_error[1]
     if orders is None:
         logging.warning(f"get_orders: No orders on {symbol}, error code={mt5.last_error()}") 
-        return None
+        return None, error_code, error_message
 
     n = 0
     count = len(orders)
@@ -329,16 +397,18 @@ def get_orders(symbol):
         '''
         n += 1
         logging.info(f'get_orders[{n}/{count}]: {order}')
+
     logging.info(f'get_orders: {orders}, {mt5.last_error()}')
     logging.info(f'get_orders: {orders_dict}, {mt5.last_error()}')
-    return orders_dict
+    return orders_dict, error_code, error_message
 
 
 if __name__ == '__main__':
     init()
 
     # account
-    ## [x] get_account_info()
+    ## [x] 
+    get_account_info()
 
 
     # order
@@ -354,8 +424,7 @@ if __name__ == '__main__':
 
 
     # list orders
-    ## [x] 
-    get_orders('BTCUSD')
+    ## [x] get_orders('BTCUSD')
     ## [x] get_order_by_ticket(ticket=47247319)
 
 

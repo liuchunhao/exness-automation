@@ -16,10 +16,11 @@ from controller import controller_withdraw
 from controller import controller_order
 from controller import controller_account
 from controller import controller_position
+from controller import controller_transaction_history
 
 from service.exness_order import init
 
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s|%(name)s|%(levelname)s|%(message)s')
+logging.basicConfig(level=logging.INFO, format='%(asctime)s|%(name)s|%(levelname)s|%(message)s')
 
 app = Flask(__name__)
 CORS(app)
@@ -30,6 +31,7 @@ app.register_blueprint(controller_withdraw.bp)
 app.register_blueprint(controller_order.bp)
 app.register_blueprint(controller_account.bp)
 app.register_blueprint(controller_position.bp)
+app.register_blueprint(controller_transaction_history.bp)
 
 clients = set()
 

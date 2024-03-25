@@ -1,6 +1,6 @@
 from flask import Blueprint, request
 
-from service.auto_withdraw import withdraw as exness_withdraw
+from service.exness_withdraw import withdraw as exness_withdraw
 
 import logging
 import json
@@ -24,5 +24,5 @@ def withdraw():
     # TODO: 
     # exness_withdraw(network=data['network'], address=data['address'], amount=data['amount'])
     res = exness_withdraw(amount=amount)
-    return res
+    return res, 200
 

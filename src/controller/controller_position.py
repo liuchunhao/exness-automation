@@ -1,3 +1,5 @@
+import time
+
 from flask import Blueprint
 from flask import request
 from flask_cors import cross_origin
@@ -16,16 +18,26 @@ bp = Blueprint('positions', __name__, url_prefix=URL_PREFIX)
 def exness_all_positions():
     ticket = request.args.get('ticket', type=int)
     if ticket is not None:
-        res = get_position(ticket)
+        res, code, msg = get_position(ticket)
         if res is None:
-            return 'Position not found', 404
-        return res, 200
+            return msg, 404
+        return {
+            "code": code,
+            "timestamp": time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()),
+            "msg": msg,
+            "data": res
+        }, 200
     else:
         symbol = request.args.get('symbol', type=str, default='BTCUSD')
-        res = get_all_positions(symbol=symbol)
+        res, code, msg = get_all_positions(symbol=symbol)
         if res is None:
-            return 'No positions found', 404
-        return res, 200
+            return msg, 404
+        return {
+            "code": code,
+            "timestamp": time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()),
+            "msg": msg,
+            "data": res
+        }, 200
 
 
 @bp.route('/positions', methods=['PUT'])
@@ -34,11 +46,16 @@ def exness_close_position_by_volume():
     payload = request.get_json()
     ticket = int(payload['ticket'])
     volume = float(payload['volume'])
-    res = close_position_by_volume(ticket=ticket, volume=volume)
+    res, code, msg = close_position_by_volume(ticket=ticket, volume=volume)
     if res is None:
-        return 'Position not closed', 404
+        return msg, 404
     else:   
-        return res, 200
+        return {
+            "code": code,
+            "timestamp": time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()),
+            "msg": msg,
+            "data": res
+        }, 200
 
 
 @bp.route('/positions', methods=['DELETE'])
@@ -46,8 +63,13 @@ def exness_close_position_by_volume():
 def exness_close_position():
     payload = request.get_json()
     ticket = int(payload['ticket'])
-    res = close_position(ticket)
+    res, code, msg = close_position(ticket)
     if res is None:
-        return 'Position not closed', 404
-    return res, 200
+        return msg, 404
+    return {
+        "code": code,
+        "timestamp": time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()),
+        "msg": msg,
+        "data": res
+    }, 200
 

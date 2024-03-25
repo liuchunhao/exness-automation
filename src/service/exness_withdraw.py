@@ -78,44 +78,42 @@ def withdraw(amount, network='TRC20', address='TToVWnYKgdgkrFP8t26qeZKmrp46UZpnH
 
         # 1. Login
         time.sleep(5)
-        logging.info(f'Login')
+        logging.info(f'1. Login')
         driver.find_element(By.NAME, 'login').send_keys(LOGIN)
         time.sleep(1)
         driver.find_element(By.NAME, 'password').send_keys(LOGIN_PASSWORD)
         time.sleep(1)
         driver.find_element(By.ID,'mui-3').click()
+        time.sleep(1)
 
         # 2. Switch to withdrawal
-        logging.info(f'Click withdrawal link: ')
+        logging.info(f'2. Click withdrawal link')
+        xpath = '//*/a[@data-test="menu-item-withdrawal"]'
         wait = WebDriverWait(driver, 30)
-        wait.until(EC.element_to_be_clickable((By.XPATH, "/html/body/div[@id='root']/div[@data-locator='layout-root']/main/div/div[@data-test='menu-root']/div[@data-walkthrough='mainMenu']/a[@data-test='menu-item-withdrawal']")))
-        xpath = "/html/body/div[@id='root']/div[@data-locator='layout-root']/main/div/div[@data-test='menu-root']/div[@data-walkthrough='mainMenu']/a[@data-test='menu-item-withdrawal']"
+        wait.until(EC.element_to_be_clickable((By.XPATH, xpath)))
         withdrawal_link = driver.find_element(By.XPATH, xpath)
         withdrawal_link.click()
-        logging.info(f'click withdrawal link: {withdrawal_link.text}')
-        time.sleep(1)
+        logging.info(f'click withdrawal link: {withdrawal_link.text}|Done')
         
         # 3.  Switch iframe
-        logging.info(f'Choose Network (Switch iframe):')
+        logging.info(f'3. Switch iframe:')
         wait = WebDriverWait(driver, 10)
-        xpath = '//*[@id="root"]/div[2]/main/div/div[2]/div/div[2]'
-        xpath = '//*[@id="root"]/div[@data-locator="layout-root"]/main/div/div[2]/div/div[2]'
-        div = wait.until(EC.element_to_be_clickable((By.XPATH, xpath)))
-        iframe = f'{xpath}/iframe'
+        iframe = '//*/iframe[@data-test="kyc-app-iframe"]'
+        div = wait.until(EC.element_to_be_clickable((By.XPATH, iframe)))
         driver.switch_to.frame(driver.find_element(By.XPATH , iframe))
+        logging.info(f'3. Switch iframe|Done')
 
-        # 3.2  Choose Network / Select ERC20 (Ethereum)
-        logging.info(f'select: {network}')
+        # 3.2  Choose Network / Select TRC20 
+        logging.info(f'4. Select: {network}')
         wait = WebDriverWait(driver, 10)
-        xpath = '/html/body/div/div/div/div/div/div[2]/div/div/div[2]/div[5]'
-
+        xpath = '//*/div[@data-auto="pl-item-button-usdttrc"]'
         wait.until(EC.element_to_be_clickable((By.XPATH, xpath)))
         div_network = driver.find_element(By.XPATH, xpath)
         div_network.click()
         time.sleep(1)
 
         # 4. Drop down list and switch currency selection
-        logging.info(f'drop down currency list')
+        logging.info(f'5. Drop down currency list')
         wait = WebDriverWait(driver, 10)
         xpath = '//*[@id="deposit"]'
         currency = wait.until(EC.element_to_be_clickable((By.XPATH, xpath)))
@@ -139,10 +137,6 @@ def withdraw(amount, network='TRC20', address='TToVWnYKgdgkrFP8t26qeZKmrp46UZpnH
         # 5. Input withdrawal address
         logging.info(f'input withdrawal address: {address}')
         wait = WebDriverWait(driver, 10)
-
-        # erc20_address = '0x345d08b98a52ceb6bd9a6ea1bef722d191550efa'    # My Binance ERC20 address
-        # trc20_address = 'TToVWnYKgdgkrFP8t26qeZKmrp46UZpnHV'            # My Binance TRC20 address
-
         xpath = '//*[@id="destination_account"]'
         input_address = wait.until(EC.element_to_be_clickable((By.XPATH, xpath)))
         input_address.send_keys(address)
@@ -160,8 +154,6 @@ def withdraw(amount, network='TRC20', address='TToVWnYKgdgkrFP8t26qeZKmrp46UZpnH
         # 7 click submit
         logging.info(f'click submit button')
         wait = WebDriverWait(driver, 10)
-        xpath = '//*[@id=":r*:"]'
-        xpath = '//*[@data-auto="confirm-button"]'
         xpath = '//*/button'
 
         submit = wait.until(EC.element_to_be_clickable((By.XPATH, xpath)))
@@ -287,7 +279,7 @@ def withdraw(amount, network='TRC20', address='TToVWnYKgdgkrFP8t26qeZKmrp46UZpnH
         # send notification to LINE
         res = {
             "code": -1,
-            "msg": "failed",
+            "msg": f'Error: {e}',
             "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "data": {
                 "network": network,
@@ -296,7 +288,7 @@ def withdraw(amount, network='TRC20', address='TToVWnYKgdgkrFP8t26qeZKmrp46UZpnH
             }
         }
     finally:
-        time.sleep(60)
+        time.sleep(30)
         driver.quit()
 
     return res

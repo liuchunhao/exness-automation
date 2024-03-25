@@ -1,3 +1,5 @@
+import time
+
 from flask import Blueprint, request
 from flask_cors import cross_origin
 
@@ -20,44 +22,30 @@ def exness_get_order():
         return 'Missing ticket', 400
 
     ticket = int(ticket)
-    res = get_order_by_ticket(ticket=ticket)
-    '''
-    ticket=47247319, 
-    time_setup=1710822767, 
-    time_setup_msc=1710822767092, 
-    time_done=0, 
-    time_done_msc=0, 
-    time_expiration=0, 
-    type=2, 
-    type_time=0, 
-    type_filling=2, 
-    state=1, 
-    magic=100, 
-    position_id=0, 
-    position_by_id=0, 
-    reason=3, 
-    volume_initial=0.03, 
-    volume_current=0.03, 
-    price_open=59000.0, 
-    sl=0.0, 
-    tp=0.0, 
-    price_current=62988.01, 
-    price_stoplimit=0.0, 
-    symbol='BTCUSD', 
-    comment='limit order', 
-    external_id=''
-    '''
-    return res, 200
+    res, code, msg = get_order_by_ticket(ticket=ticket)
+    if res is None:
+        return msg, 404
+    return {
+        "code": code,
+        "timestamp": time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()),
+        "msg": msg,
+        "data": res
+    }, 200
 
 
 @bp.route('/order/list', methods=['GET'])
 @cross_origin()
 def exness_get_orders_by_symbol():
     symbol = request.args.get('symbol', type=str, default='BTCUSD') 
-    res = get_orders(symbol=symbol)
+    res, code, msg = get_orders(symbol=symbol)
     if res is None:
-        return 'No orders found', 404
-    return res, 200
+        return msg, 404
+    return {
+        "code": code,
+        "timestamp": time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()),
+        "msg": msg,
+        "data": res
+    }, 200
 
 
 @bp.route('/order/limit', methods=['POST']) 
@@ -77,10 +65,16 @@ def exness_limit_order():
     order_type = data['order_type']
     volume = float(data['volume'])
     price = float(data['price'])
-    res = limit_order(symbol=symbol, order_type=order_type, volume=volume, price=price)
+    res, code, msg = limit_order(symbol=symbol, order_type=order_type, volume=volume, price=price)
     if res is None:
-        return 'Order not created', 404
-    return res, 200
+        return msg, 404
+
+    return {
+        "code": code,
+        "timestamp": time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()),
+        "msg": msg,
+        "data": res
+    }, 200
 
 
 @bp.route('/order/market', methods=['POST']) 
@@ -98,10 +92,15 @@ def exness_market_order():
     symbol = data['symbol']
     order_type = data['order_type']
     volume = float(data['volume'])
-    res = market_order(symbol=symbol, order_type=order_type, volume=volume)
+    res, code, msg = market_order(symbol=symbol, order_type=order_type, volume=volume)
     if res is None:
-        return 'Order not created', 404
-    return res, 200
+        return msg, 404
+    return {
+        "code": code,
+        "timestamp": time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()),
+        "msg": msg,
+        "data": res
+    }, 200
 
 
 @bp.route('/order', methods=['DELETE'])
@@ -114,10 +113,15 @@ def exness_delete_order():
     '''
     data = request.get_json()
     ticket = int(data['ticket'])
-    res = delete_order(ticket=ticket)
+    res, code, msg = delete_order(ticket=ticket)
     if res is None:
-        return 'Order not found', 404
-    return res, 200
+        return msg, 404
+    return {
+        "code": code,
+        "timestamp": time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()),
+        "msg": msg,
+        "data": res
+    }, 200
 
 
 @bp.route('/order', methods=['PUT'])
@@ -132,8 +136,13 @@ def exness_modify_order():
     data = request.get_json()
     ticket = int(data['ticket'])
     price = float(data['price'])
-    res = modify_order_by_price(ticket=ticket, price=price)
+    res, code, msg = modify_order_by_price(ticket=ticket, price=price)
     if res is None:
-        return 'Order not found', 404
-    return res, 200
+        return msg, 404
+    return {
+        "code": code,
+        "timestamp": time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()),
+        "msg": msg,
+        "data": res
+    }, 200
 

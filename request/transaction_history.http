@@ -1,0 +1,12 @@
+
+###
+GET http://localhost:5100/api/v1/exness/transactions/accounts/59565425
+
+###
+GET http://localhost:5100/api/v1/exness/transactions/accounts/59565425/invoices/1243621254
+
+###
+GET http://localhost:5100/api/v1/exness/transactions/accounts/59565425/statuses/rejected/payments/withdrawal
+
+###
+GET http://localhost:5100/api/v1/exness/transactions/accounts/59565425/statuses/done/payments/withdrawal
