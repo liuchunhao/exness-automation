@@ -71,4 +71,4 @@ if __name__ == '__main__':
     # threading.Thread(target=run_on_trade_server).start()
     # threading.Thread(target=run_on_tick_server).start()
 
-    app.run(port=5100, debug=True)
+    app.run(host='0.0.0.0', port=5100, debug=True)

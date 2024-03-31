@@ -23,9 +23,13 @@ nohup python src/on_tick_server_exness.py &
 nohup python src/on_trade_server_exness.py &
 nohup python src/main.py &
 
+sleep 5
+
 ps -ef | grep python | grep -v grep 
 ps -ef | grep python | grep -v grep | grep on_tick_server_binance | awk '{print $2}'
 ps -ef | grep python | grep -v grep | grep on_tick_server_exness  | awk '{print $2}'
 ps -ef | grep python | grep -v grep | grep on_trade_server_exness | awk '{print $2}'
 ps -ef | grep python | grep -v grep | grep main | awk '{print $2}'
 
+
+netstat -na | grep TCP | grep LIST | egrep "5100|8765|18765"

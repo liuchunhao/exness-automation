@@ -275,11 +275,11 @@ def withdraw(amount, network='TRC20', address='TToVWnYKgdgkrFP8t26qeZKmrp46UZpnH
             }
         }
     except Exception as e:
-        logging.error(f'Error: {e}')    
+        logging.error(f'Error: {e.__str__}')    
         # send notification to LINE
         res = {
             "code": -1,
-            "msg": f'Error: {e}',
+            "msg": f'Error: {e.__str__}',
             "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "data": {
                 "network": network,
@@ -288,7 +288,6 @@ def withdraw(amount, network='TRC20', address='TToVWnYKgdgkrFP8t26qeZKmrp46UZpnH
             }
         }
     finally:
-        time.sleep(30)
         driver.quit()
 
     return res
