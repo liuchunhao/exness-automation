@@ -1,0 +1,12 @@
+###
+GET http://localhost:5300/api/v1/exness/wallets
+
+###
+POST http://localhost:5300/api/v1/exness/wallets/transfer
+Content-Type: application/json
+
+{
+    "amount": 1,
+    "destination": "futures",
+    "wallet": "TRC20"
+}   

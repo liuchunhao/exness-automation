@@ -17,6 +17,7 @@ import re
 import json
 import logging
 import dotenv
+
 from datetime import datetime
 
 import requests
@@ -33,7 +34,7 @@ SPOT_ACCOUNT_TRC20 = os.getenv('SPOT_ACCOUNT_TRC20')
 SPOT_ACCOUNT_ERC20 = os.getenv('SPOT_ACCOUNT_ERC20')
 
 def transfer(amount, destination='futures', wallet='TRC20'):
-    begin_time = time.localtime()
+    begin = datetime.now()
     invoice_id = 'N/A'
     status = 'N/A'
     text = ''
@@ -42,13 +43,17 @@ def transfer(amount, destination='futures', wallet='TRC20'):
         spot_account = SPOT_ACCOUNT_ERC20
     elif wallet == 'TRC20':
         spot_account = SPOT_ACCOUNT_TRC20
+    else:
+        raise Exception(f'Invalid wallet: {wallet}')
 
-    if destination == 'futures':
+    if destination.lower() == 'futures':
         destination_account = FUTURES_ACCOUNT
         source_account = spot_account
-    elif destination == 'spot':
+    elif destination.lower() == 'spot':
         destination_account = spot_account
         source_account = FUTURES_ACCOUNT
+    else:
+        raise Exception(f'Invalid destination: {destination}')
 
     logging.info(f'0. Begin transfer from {source_account} to {destination_account}, wallet: {wallet}, amount: {amount}')
 
@@ -290,20 +295,114 @@ def transfer(amount, destination='futures', wallet='TRC20'):
         }
     finally:
         driver.quit()
-
-    end_time = time.localtime()
-    duration = time.mktime(end_time) - time.mktime(begin_time)
-    res ['data']['duration'] = duration
+        end = datetime.now()
+        res ['data']['duration'] = str(end - begin)
 
     logging.info(f'res: {json.dumps(res, indent=4)}')
     return res
+
+
+def get_spot_wallet_list():
+    logging.info(f'0. Begin get spot wallet list')
+    begin = datetime.now()
+    res = {
+        "code": 0,
+        "msg": "Success",
+        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "data": {
+            "wallets": [ ]
+        }
+    }
+
+    driver = webdriver.Firefox()
+    try:
+        driver.get('https://my.exness.com/accounts/sign-in?lng=en')
+        driver.maximize_window()
+
+        # 1. Login
+        try: 
+            logging.info(f'1. Login')
+            time.sleep(5)
+            wait = WebDriverWait(driver, 30)
+            wait.until(EC.element_to_be_clickable((By.NAME, 'login'))).send_keys(LOGIN)
+            time.sleep(1)
+            wait.until(EC.element_to_be_clickable((By.NAME, 'password'))).send_keys(LOGIN_PASSWORD)
+            time.sleep(1)
+            wait.until(EC.element_to_be_clickable((By.XPATH, '//*/button[@data-testid="login-button"]'))).click()
+        except Exception as e:
+            raise Exception(f'Login: Not found')
+
+        # 2. Click Crypto wallets
+        try:
+            logging.info(f'2. Click Crypto wallets')
+            wait = WebDriverWait(driver, 20)
+            xpath = '//*/a[@data-test="menu-item-crypto-wallet"]'
+            wait.until(EC.element_to_be_clickable((By.XPATH, xpath))).click()
+        except TimeoutException as e:
+            raise Exception(f'Click Crypto wallets: Not found')
+
+        # 3. Switch iframe
+        def swithc_iframe():
+            try:
+                logging.info(f'3. Switch iframe')
+                wait = WebDriverWait(driver, 10)
+                xpath = '//*/iframe[@data-test="kyc-app-iframe"]'
+                iframe = wait.until(EC.element_to_be_clickable((By.XPATH, xpath)))
+                driver.switch_to.frame(iframe)
+            except TimeoutException as e:
+                raise Exception(f'Switch iframe: Not found')
+
+        swithc_iframe()
+
+        # 4. Get wallet list
+        try:
+            logging.info(f'4. Get wallet list')
+            xpath = '//*/div[@data-auto="wallet"]/div/div[4]/div'
+            wait = WebDriverWait(driver, 10)
+            list = wait.until(EC.presence_of_element_located((By.XPATH, xpath))).find_elements(By.XPATH, xpath)    
+            logging.info(f'4. Get wallet list: {len(list)}')
+            count = len(list)
+            i = 1
+            for w in list:
+                logging.info(f'4. Get wallet list [{i}/{count}]: {w}')
+                # get <span> element for the wallet
+                _xpath = f'{xpath}[{i}]//*/span'
+                _spans = w.find_elements(By.XPATH, _xpath)
+                logging.info(f'4. Get wallet list: {len(_spans)}')
+                wallet = _spans[0].get_attribute("innerHTML")
+                amount = _spans[1].get_attribute("innerHTML")
+                currency = _spans[2].get_attribute("innerHTML")
+                logging.info(f'4. Get wallet list: {wallet}, {amount}, {currency}')
+                res['data']['wallets'].append({
+                    "wallet": wallet,
+                    "amount": amount,
+                    "currency": currency
+                })
+                i += 1
+                
+        except Exception as e:
+            raise Exception(f'Click Wallets: Not found')
+
+    except Exception as e:
+        logging.error(f'Failed: {e}')
+        res['code'] = -1
+        res['msg'] = f'Failed: {e}'
+        res['data']['wallets'] = []
+    finally:
+        driver.quit()
+        end = datetime.now()
+        res['timestamp'] = end.strftime("%Y-%m-%d %H:%M:%S"),
+        res['data']['duration'] = str(end - begin)
+    
+    logging.info(f'res: {json.dumps(res, indent=4)}')
+    return res
+
     
 if __name__ == '__main__':
 
-    # [] transfer(source='futures', network='TRC20', amount=1)
-    # [] transfer(source='spot', network='TRC20', amount=1)
-    # [] transfer(destination='futures', wallet='TRC20', amount=1)
-    transfer(destination='spot', wallet='ERC20', amount=1)
-    # transfer(destination='futures', wallet='ERC20', amount=1)
-    # transfer(network='ERC20', amount=1)
-   
+    # [] 
+    transfer(destination='futures', wallet='TRC20', amount=1)
+    # [] transfer(destination='spot', wallet='ERC20', amount=1)
+    # [] transfer(destination='futures', wallet='ERC20', amount=1)
+
+    # [] get_spot_wallet_list()

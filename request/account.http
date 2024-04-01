@@ -1,12 +1,12 @@
 ### account info
-GET http://localhost:5100/api/v1/exness/account_info
+GET http://localhost:5300/api/v1/exness/account_info
 
 ### margin
-GET http://localhost:5100/api/v1/exness/margin
+GET http://localhost:5300/api/v1/exness/margin
 
 
 ### balance
-GET http://localhost:5100/api/v1/exness/balance
+GET http://localhost:5300/api/v1/exness/balance
 
 ### equity
-GET http://localhost:5100/api/v1/exness/equity
+GET http://localhost:5300/api/v1/exness/equity

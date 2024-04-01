@@ -22,6 +22,7 @@ bp = Blueprint('transactions', __name__, url_prefix=URL_PREFIX)
 
 
 @bp.route('/transactions', methods=['GET'])
+@cross_origin()
 def get_exness_transaction_history():
     account = request.args.get('account', type=str, default='') 
     payment = request.args.get('payment', type=str, default='') 
@@ -34,9 +35,10 @@ def get_exness_transaction_history():
 @bp.route('/transactions/latest', methods=['GET'])
 @cross_origin()
 def get_exness_transaction_history_latest(account, status):
+    # check if account is available
     account = request.args.get('account', type=str, default='') 
     payment = request.args.get('payment', type=str, default='') 
     status = request.args.get('status',   type=str, default='') 
-    logging.info(f"GET|{URL_PREFIX}/transactions?account={account}&payment={payment}&status={status}")
+    logging.info(f"GET|{URL_PREFIX}/transactions/latest?account={account}&payment={payment}&status={status}")
     res = get_latest_transaction_history(account=account, status=status, payment_type=payment)
     return res, 200

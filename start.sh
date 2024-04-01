@@ -32,4 +32,4 @@ ps -ef | grep python | grep -v grep | grep on_trade_server_exness | awk '{print 
 ps -ef | grep python | grep -v grep | grep main | awk '{print $2}'
 
 
-netstat -na | grep TCP | grep LIST | egrep "5100|8765|18765"
+netstat -na | grep TCP | grep LIST | egrep "5300|8765|18765"
