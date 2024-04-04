@@ -1,27 +1,27 @@
 
 ### positions 
-GET http://localhost:5100/api/v1/exness/positions?symbol=BTCUSD
+GET http://localhost:5300/api/v1/exness/positions?symbol=BTCUSD
 
 ### positions 
 GET http://localhost:5100/api/v1/exness/positions?ticket=47247020
 
 
 ### delete position
-DELETE http://localhost:5100/api/v1/exness/positions
+DELETE http://localhost:5300/api/v1/exness/positions
 Content-Type: application/json
 
 {
-    "ticket": 47085491
+    "ticket": 49839876
 }
 
 
 ### modify position by volume
-PUT http://localhost:5100/api/v1/exness/positions
+PUT http://localhost:5300/api/v1/exness/positions
 Content-Type: application/json
 
 {
-    "ticket": 47247020,
-    "volume": 0.01
+    "ticket": 49808521,
+    "volume": 0.04
 }
 
 

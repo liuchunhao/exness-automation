@@ -96,13 +96,15 @@ def limit_order(symbol: str, order_type: str, volume: float, price: float, type_
     return result._asdict(), code, msg
 
 
-def market_order(symbol, volume: float, order_type: str):
+def market_order(symbol, volume: float, order_type: str, action=mt5.TRADE_ACTION_DEAL):
     tick = mt5.symbol_info_tick(symbol)
     logging.info(f'tick: {tick}')
-    price_dict = { 'buy': tick.ask, 'sell': tick.bid }
-    order_dict = { 'buy': mt5.ORDER_TYPE_BUY, 'sell': mt5.ORDER_TYPE_SELL }
+    price_dict = { 'buy': tick.ask, 
+                  'sell': tick.bid }
+    order_dict = { 'buy': mt5.ORDER_TYPE_BUY, 
+                  'sell': mt5.ORDER_TYPE_SELL }
     request = {
-        'action': mt5.TRADE_ACTION_DEAL,    # Place an order for an instant deal with the specified parameters (set a market order)
+        'action': action,    # Place an order for an instant deal with the specified parameters (set a market order)
         'symbol': symbol,                   # 'BTCUSD'
         'volume': volume,
         'type': order_dict[order_type],
@@ -255,19 +257,32 @@ def get_all_positions(symbol='BTCUSD'):
 def close_position(ticket: int):
     positions= mt5.positions_get(ticket=ticket)
     position = positions[0] if len(positions) > 0 else None
+    logging.info(f'close_position: {position}')
     if position is None:
         logging.warning(f"close_position: No position on {ticket}, error code={mt5.last_error()}") 
         return None
+
     tick = mt5.symbol_info_tick(position.symbol)
+    logging.info(f'tick: {tick}')
+    type = mt5.ORDER_TYPE_SELL if position.type in [mt5.ORDER_TYPE_BUY, mt5.ORDER_TYPE_BUY_LIMIT, mt5.ORDER_TYPE_BUY_STOP] else mt5.ORDER_TYPE_BUY
+    logging.info(f'type: {type}, position: {position.type}' )
+    price = tick.ask if type in [mt5.ORDER_TYPE_BUY, mt5.ORDER_TYPE_BUY_LIMIT, mt5.ORDER_TYPE_BUY_STOP] else tick.bid
+    logging.info(f'price: {price}')
     request = {
         'action': mt5.TRADE_ACTION_DEAL,        # Place an order for an instant deal with the specified parameters (set a market order)
         'symbol': position.symbol,              # 'BTCUSD'
         'position': ticket,                         
         'volume': position.volume,
-        'type': mt5.ORDER_TYPE_SELL if position.type == mt5.ORDER_TYPE_BUY else mt5.BOOK_TYPE_BUY,
-        'price': tick.bid if position.type == mt5.ORDER_TYPE_BUY else tick.ask,
+        'type': type,
+        'price': float(price),
+        'deviation': 20,
         'comment': 'close_position',           # less than 14 characters
+        'type_time': mt5.ORDER_TIME_GTC,
+        'type_filling': mt5.ORDER_FILLING_IOC,
     }
+
+    logging.info(f'close_position: {request}')
+
     result = mt5.order_send(request)
     last_error = mt5.last_error()
     error_code = last_error[0]
@@ -298,16 +313,30 @@ def close_position_by_volume(ticket: int, volume: float):
         logging.warning(f"close_position: No position on {ticket}, error code={mt5.last_error()}") 
         return None
 
+    # symbol = position.symbol
+    # volume = position.volume - volume
+    # type = 'sell' if position.type in [ mt5.ORDER_TYPE_BUY, mt5.ORDER_TYPE_BUY_LIMIT ] else 'buy'
+    # logging.info(f'type: {type}, volume: {volume}, position: {position.type}' )
+    # return market_order(symbol, volume, order_type=type)
+    # pass
+
     tick = mt5.symbol_info_tick(position.symbol)
+    logging.info(f'tick: {tick}')
+    type = mt5.ORDER_TYPE_SELL if position.type in [mt5.ORDER_TYPE_BUY, mt5.ORDER_TYPE_BUY_LIMIT, mt5.ORDER_TYPE_BUY_STOP] else mt5.ORDER_TYPE_BUY
+    logging.info(f'type: {type}, position: {position.type}' )
+    price = tick.ask if type in [mt5.ORDER_TYPE_BUY, mt5.ORDER_TYPE_BUY_LIMIT, mt5.ORDER_TYPE_BUY_STOP] else tick.bid
+    logging.info(f'price: {price}')
+
     request = {
         'action': mt5.TRADE_ACTION_DEAL,        # Place an order for an instant deal with the specified parameters (set a market order)
         'symbol': position.symbol,              # 'BTCUSD'
         'position': ticket,                         
         'volume': volume,
-        'type': mt5.ORDER_TYPE_SELL if position.type == mt5.ORDER_TYPE_BUY else mt5.BOOK_TYPE_BUY,
-        'price': tick.bid if position.type == mt5.ORDER_TYPE_BUY else tick.ask,
+        'type': type,
+        'price': price,
         'comment': "close_position_by_volume",
     }
+
     result = mt5.order_send(request)
 
     last_error = mt5.last_error()
@@ -407,8 +436,7 @@ if __name__ == '__main__':
     init()
 
     # account
-    ## [x] 
-    get_account_info()
+    ## [x] get_account_info()
 
 
     # order
@@ -433,6 +461,7 @@ if __name__ == '__main__':
     # [x] close_position(ticket=47086921)
     # [ ] close_all_positions(symbol='BTCUSD')
     # [x] get_all_positions(symbol='BTCUSD')
-    # [x] get_position(47106361)
+    # [x] 
+    get_position(47106361)
 
     mt5.shutdown()

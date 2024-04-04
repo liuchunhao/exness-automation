@@ -65,7 +65,12 @@ def exness_close_position():
     ticket = int(payload['ticket'])
     res, code, msg = close_position(ticket)
     if res is None:
-        return msg, 404
+        return {
+            "code": code,
+            "timestamp": time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()),
+            "msg": msg,
+            "data": []
+        }, 404
     return {
         "code": code,
         "timestamp": time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()),

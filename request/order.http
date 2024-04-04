@@ -8,18 +8,18 @@ GET http://localhost:5100/api/v1/exness/order?ticket=47247319
 GET http://localhost:5100/api/v1/exness/order/list?symbol=BTCUSD
 
 ### limit order
-POST http://localhost:5100/api/v1/exness/order/limit
+POST http://localhost:5300/api/v1/exness/order/limit
 Content-Type: application/json
 
 {
     "symbol": "BTCUSD",
-    "order_type": "buy",
+    "order_type": "sell",
     "volume": 0.03,
     "price": 73500
 }
 
 ### market order
-POST http://localhost:5100/api/v1/exness/order/market
+POST http://localhost:5300/api/v1/exness/order/market
 Content-Type: application/json
 
 {
@@ -29,11 +29,11 @@ Content-Type: application/json
 }
 
 ### modify order price
-PUT http://localhost:5100/api/v1/exness/order
+PUT http://localhost:5300/api/v1/exness/order
 Content-Type: application/json
 
 {
-    "ticket": 47449362,
+    "ticket": 48064299,
     "price": 59999
 }
 
