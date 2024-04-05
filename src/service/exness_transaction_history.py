@@ -375,35 +375,47 @@ def list_transaction_history(account="", status="", payment_type=""):
             }
             logging.info(f'8. Check the source of the selected transaction [{invoice_id}]: {switch}')
 
-            xpath_from = f'{xpath}//*/div[@data-auto="from"]'
-            _from = wait.until(EC.element_to_be_clickable((By.XPATH, xpath_from)))
-            _from = str(_from.get_attribute('innerHTML')).replace("\u2022", "") 
-            _from = switch[_from] if _from in switch.keys() else _from
-            transaction["from"] = _from
-            logging.info(f'8. Check the source of the selected transaction [{invoice_id}]: {_from}')   
+            try:
+                xpath_from = f'{xpath}//*/div[@data-auto="from"]'
+                _from = wait.until(EC.element_to_be_clickable((By.XPATH, xpath_from)))
+                _from = str(_from.get_attribute('innerHTML')).replace("\u2022", "") 
+                _from = switch[_from] if _from in switch.keys() else _from
+                transaction["from"] = _from
+                logging.info(f'8. Check the source of the selected transaction [{invoice_id}]: {_from}')   
+            except Exception as e:
+                raise Exception(f'8. Check the source of the selected transaction [{invoice_id}]: None')
 
-            ## Get <to> on the selected row
-            xpath_to = f'{xpath}//*/div[@data-auto="to"]'
-            _to = wait.until(EC.element_to_be_clickable((By.XPATH, xpath_to)))
-            _to = str(_to.get_attribute('innerHTML')).replace('\u2022', "") 
-            _to = switch[_to] if _to in switch.keys() else _to
-            transaction["to"] = _to
-            logging.info(f'8. Check the destination of the selected transaction [{invoice_id}]: {_to}')   
+            try:
+                ## Get <to> on the selected row
+                xpath_to = f'{xpath}//*/div[@data-auto="to"]'
+                _to = wait.until(EC.element_to_be_clickable((By.XPATH, xpath_to)))
+                _to = str(_to.get_attribute('innerHTML')).replace('\u2022', "") 
+                _to = switch[_to] if _to in switch.keys() else _to
+                transaction["to"] = _to
+                logging.info(f'8. Check the destination of the selected transaction [{invoice_id}]: {_to}')   
+            except Exception as e:
+                raise Exception(f'8. Check the destination of the selected transaction [{invoice_id}]: None')
 
             ## Get <amount> on the selected row
-            xpath_amount = f'{xpath}//*/div[@data-auto="amount"]/div[@data-auto="ltr"]'
-            amount = wait.until(EC.element_to_be_clickable((By.XPATH, xpath_amount)))
-            amount_value = str(amount.get_attribute('innerHTML'))
-            amount_value = amount_value.replace('&nbsp;', '')
-            transaction["amount"] = amount_value
-            logging.info(f'8. Check the status of selected invoice id: [{invoice_id}] -> amount: {amount_value}')
+            try: 
+                xpath_amount = f'{xpath}//*/div[@data-auto="amount"]/div[@data-auto="ltr"]'
+                amount = wait.until(EC.element_to_be_clickable((By.XPATH, xpath_amount)))
+                amount_value = str(amount.get_attribute('innerHTML'))
+                amount_value = amount_value.replace('&nbsp;', '')
+                transaction["amount"] = amount_value
+                logging.info(f'8. Check the status of selected invoice id: [{invoice_id}] -> amount: {amount_value}')
+            except Exception as e:
+                raise Exception(f'8. Check the status of selected invoice id: [{invoice_id}] -> amount: None')
 
             ## Get <status> on the selected row
-            xpath_status = f'{xpath}//*/div[@data-auto="status"]'
-            status = wait.until(EC.element_to_be_clickable((By.XPATH, xpath_status)))
-            status_value = str(status.get_attribute('innerHTML'))
-            transaction["status"] = status_value
-            logging.info(f'8. Check the status of selected invoice id: [{invoice_id}] -> amount: {amount_value}')
+            try:
+                xpath_status = f'{xpath}//*/div[@data-auto="status"]/span'
+                status = wait.until(EC.element_to_be_clickable((By.XPATH, xpath_status)))
+                status_value = str(status.get_attribute('innerHTML'))
+                transaction["status"] = status_value
+                logging.info(f'8. Get <status> on the selected row: [{invoice_id}] -> status: {status_value}')
+            except Exception as e:
+                raise Exception(f'8. Get <status> on the selected row: [{invoice_id}] -> status: None')
 
             ## Get "reason" of rejection
             xpath_reason = f'{xpath}//*/div[@data-auto="reason"]'
